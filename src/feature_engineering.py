@@ -6,10 +6,9 @@ from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 
 
-# 🔹 1. Customer-level Aggregates
+#  Customer-level Aggregates
 class CustomerAggregateFeature(BaseEstimator, TransformerMixin):
-
-    def __init__(self, value_col='Value', amount_col='Amount', customer_id_col='CustomerId'):
+    def __init__(self, value_col='Value', amount_col='Amount', customer_id_col='AccountId'): 
         self.value_col = value_col
         self.amount_col = amount_col
         self.customer_id_col = customer_id_col
@@ -24,6 +23,11 @@ class CustomerAggregateFeature(BaseEstimator, TransformerMixin):
         :return:
         """
         X = X.copy()
+        # Validate columns exist
+        missing = {self.value_col, self.amount_col, self.customer_id_col} - set(X.columns)
+        if missing:
+            raise ValueError(f"Missing columns: {missing}")
+        
         agg_df = X.groupby(self.customer_id_col).agg(
             total_amount=(self.amount_col, 'sum'),
             average_amount=(self.amount_col, 'mean'),
@@ -33,7 +37,7 @@ class CustomerAggregateFeature(BaseEstimator, TransformerMixin):
         return agg_df
 
 
-# 🔹 2. Timestamp Extraction
+# Timestamp Extraction
 class DateTimeFeatureExtractor(BaseEstimator, TransformerMixin):
 
     def __init__(self, datetime_col='TransactionStartTime'):
@@ -50,11 +54,15 @@ class DateTimeFeatureExtractor(BaseEstimator, TransformerMixin):
         X = X.copy()
         if self.datetime_col in X.columns:
             X[self.datetime_col] = pd.to_datetime(X[self.datetime_col], errors='coerce')
-            X['TransactionHour'] = X[self.datetime_col].dt.hour
-            X['TransactionDay'] = X[self.datetime_col].dt.day
-            X['TransactionMonth'] = X[self.datetime_col].dt.month
-            X['TransactionYear'] = X[self.datetime_col].dt.year
+            X['TransactionHour'] = X[self.datetime_col].dt.hour.fillna(0)
+            X['TransactionDay'] = X[self.datetime_col].dt.day.fillna(1)
+            X['TransactionMonth'] = X[self.datetime_col].dt.month.fillna(1)
+            X['TransactionYear'] = X[self.datetime_col].dt.year.fillna(2023)
             X.drop(columns=[self.datetime_col], inplace=True)
+        else:
+            # Add default values if column missing
+            for col in ['TransactionHour', 'TransactionDay', 'TransactionMonth', 'TransactionYear']:
+                X[col] = 0
         return X
 
 
@@ -91,8 +99,22 @@ def build_full_pipeline(
     # Full pipeline with aggregation + datetime + processing
     full_pipeline = Pipeline([
         ('customer_agg', CustomerAggregateFeature()),
+        ('debug1', DebugTransformer("After aggregation")),
         ('datetime', DateTimeFeatureExtractor()),
+        ('debug2', DebugTransformer("After datetime")),
         ('processor', feature_processor)
     ])
-
     return full_pipeline
+
+class DebugTransformer(BaseEstimator, TransformerMixin):
+    
+    def __init__(self, message):
+        self.message = message
+        
+    def transform(self, X):
+        print(f"\n{self.message}:")
+        print(f"Type: {type(X)}")
+        if hasattr(X, 'shape'):
+            print(f"Shape: {X.shape}")
+            print("Columns:", X.columns.tolist())
+        return X
