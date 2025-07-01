@@ -51,6 +51,61 @@
 
 ---
 
+## Data EDA
+
+Number of column and row: (95662, 16) 
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 95662 entries, 0 to 95661
+Data columns (total 16 columns):
+
+### 🔢 Summary Statistics:
+
+| Column Name            | Count   | Unique | Top Value              | Frequency |
+|------------------------|---------|--------|-------------------------|-----------|
+| TransactionId          | 95,662  | 95,662 | TransactionId_76871    | 1         |
+| BatchId                | 95,662  | 94,809 | BatchId_67019          | 28        |
+| AccountId              | 95,662  | 3,633  | AccountId_4841         | 30,893    |
+| SubscriptionId         | 95,662  | 3,627  | SubscriptionId_3829    | 32,630    |
+| CustomerId             | 95,662  | 3,742  | CustomerId_7343        | 4,091     |
+| CurrencyCode           | 95,662  | 1      | UGX                    | 95,662    |
+| CountryCode            | 95,662  | NaN    | NaN                    | NaN       |
+| ProviderId             | 95,662  | 6      | ProviderId_4           | 38,189    |
+| ProductId              | 95,662  | 23     | ProductId_6            | 32,635    |
+| ProductCategory        | 95,662  | 9      | financial_services     | 45,405    |
+| ChannelId              | 95,662  | 4      | ChannelId_3            | 56,935    |
+| Amount                 | 95,662  | NaN    | NaN                    | NaN       |
+| Value                  | 95,662  | NaN    | NaN                    | NaN       |
+| TransactionStartTime   | 95,662  | 94,556 | 2018-12-24T16:30:13Z   | 17        |
+| PricingStrategy        | 95,662  | NaN    | NaN                    | NaN       |
+| FraudResult            | 95,662  | NaN    | NaN                    | NaN       |
+
+| Column Name           | Mean        | Std Dev       | Min         | 25%     | 50%     |
+|-----------------------|-------------|---------------|-------------|---------|---------|
+| TransactionId         | NaN         | NaN           | NaN         | NaN     | NaN     |
+| BatchId               | NaN         | NaN           | NaN         | NaN     | NaN     |
+| AccountId             | NaN         | NaN           | NaN         | NaN     | NaN     |
+| SubscriptionId        | NaN         | NaN           | NaN         | NaN     | NaN     |
+| CustomerId            | NaN         | NaN           | NaN         | NaN     | NaN     |
+| CurrencyCode          | NaN         | NaN           | NaN         | NaN     | NaN     |
+| CountryCode           | 256.0       | 0.0           | 256.0       | 256.0   | 256.0   |
+| ProviderId            | NaN         | NaN           | NaN         | NaN     | NaN     |
+| ProductId             | NaN         | NaN           | NaN         | NaN     | NaN     |
+| ProductCategory       | NaN         | NaN           | NaN         | NaN     | NaN     |
+| ChannelId             | NaN         | NaN           | NaN         | NaN     | NaN     |
+| Amount                | 6,717.85    | 123,306.80    | -1,000,000  | -50.0   | 1,000.0 |
+| Value                 | 9,900.58    | 123,122.09    | 2.0         | 275.0   | 1,000.0 |
+| TransactionStartTime  | NaN         | NaN           | NaN         | NaN     | NaN     |
+| PricingStrategy       | 2.26        | 0.73          | 0.0         | 2.0     | 2.0     |
+| FraudResult           | 0.002       | 0.0449        | 0.0         | 0.0     | 0.0     |
+
+🔍 A few quick observations:
+- Most categorical ID-type fields have NaNs here because these summary stats only apply to numerical data.
+- `Amount` and `Value` have massive standard deviations compared to their means—might want to check for extreme outliers.
+- `CountryCode` seems to be a single constant value (256.0), which suggests low variance—maybe all records are from Uganda?
+- `FraudResult` is very close to 0 throughout, implying most transactions were likely not flagged.
+ 
+
+
 ## Technical Implementation
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yourusername/credit-risk-model/ci.yml) 

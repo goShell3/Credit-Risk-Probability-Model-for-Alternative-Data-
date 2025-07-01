@@ -1,6 +1,6 @@
 import pytest
 from sklearn.ensemble import RandomForestClassifier
-from src.model_training import evaluate
+from src.train import evaluate
 
 # Sample helper function for feature importance (can also be placed in a separate utils module)
 def get_feature_importance(model, feature_names):

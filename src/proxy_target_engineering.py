@@ -4,17 +4,21 @@ from sklearn.cluster import KMeans
 
 
 class ProxyTargetEngineer:
-    def __init__(self, snapshot_date: str = '2023-12-31', n_clusters: int = 3, random_state: int = 42):
-        self.snapshot_date = pd.to_datetime(snapshot_date)
-        self.n_clusters = n_clusters
-        self.random_state = random_state
-        self.scaler = StandardScaler()
-        self.kmeans = KMeans(n_clusters=self.n_clusters, random_state=self.random_state)
-        self.high_risk_cluster = None
+    def __init__(self, snapshot_date='2023-12-31'):
+        # Convert to timezone-naive datetime
+        self.snapshot_date = pd.to_datetime(snapshot_date).tz_localize(None)
 
     def compute_rfm(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['TransactionStartTime'] = pd.to_datetime(df['TransactionStartTime'], errors='coerce')
-
+        # Convert to datetime - ensure consistent timezone handling
+        df['TransactionStartTime'] = pd.to_datetime(
+            df['TransactionStartTime'], 
+            errors='coerce',
+            utc=False  # Match snapshot_date's timezone
+        )
+        
+        # Filter out null dates if any
+        df = df.dropna(subset=['TransactionStartTime'])
+        
         rfm = df.groupby('CustomerId').agg({
             'TransactionStartTime': lambda x: (self.snapshot_date - x.max()).days,
             'TransactionId': 'count',
@@ -24,7 +28,7 @@ class ProxyTargetEngineer:
             'TransactionId': 'Frequency',
             'Amount': 'Monetary'
         }).reset_index()
-
+        
         return rfm
 
     def assign_clusters(self, rfm: pd.DataFrame) -> pd.DataFrame:

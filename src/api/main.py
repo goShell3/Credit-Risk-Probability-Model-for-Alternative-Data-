@@ -1,13 +1,15 @@
+from fastapi import FastAPI
+from src.api.pydantic_models import PredictionInput, PredictionResponse
+import mlflow.pyfunc
 import pandas as pd
-from src.feature_engineering import build_full_pipeline
 
-# Load your raw transaction data
-df = pd.read_csv("data/raw_transactions.csv")
+app = FastAPI()
 
-# Build the pipeline
-pipeline = build_full_pipeline()
+# Load the best model from Mflow
+model = mlflow.pyfunc.load_model("models:/best_random_forest/Production")
 
-# Fit and transform
-X_processed = pipeline.fit_transform(df)
-
-print(X_processed.shape)
+@app.post("/predict", response_model=PredictionResponse)
+def predict(input_data: PredictionInput):
+    df = pd.DataFrame([input_data.dict()])
+    prob = model.predict(df)[0]
+    return PredictionResponse(risk_probability=prob)
